@@ -1,7 +1,6 @@
-// utils/fileUpload.js
-const cloudinary = require('cloudinary').v2;
 const multer = require('multer');
-const { CloudinaryStorage } = require('multer-storage-cloudinary');
+const { v2: cloudinary } = require('cloudinary');
+const { Readable } = require('stream');
 
 // Configure Cloudinary
 cloudinary.config({
@@ -10,32 +9,17 @@ cloudinary.config({
   api_secret: process.env.CLOUDINARY_API_SECRET,
 });
 
-// Configure multer for file uploads
-const storage = new CloudinaryStorage({
-  cloudinary: cloudinary,
-  params: {
-    folder: 'instagram-clone',
-    allowed_formats: ['jpg', 'jpeg', 'png', 'gif', 'mp4', 'mov', 'avi'],
-    resource_type: 'auto', // Automatically detect if it's image or video
-    transformation: [
-      {
-        width: 1080,
-        height: 1080,
-        crop: 'limit',
-        quality: 'auto'
-      }
-    ]
-  }
-});
+// Use memory storage instead of CloudinaryStorage
+const storage = multer.memoryStorage();
 
-// Multer middleware
-const upload = multer({ 
-  storage: storage,
+// Multer configuration
+const upload = multer({
+  storage,
   limits: {
-    fileSize: 50 * 1024 * 1024, // 50MB limit
+    fileSize: 10 * 1024 * 1024, // 10MB limit
   },
   fileFilter: (req, file, cb) => {
-    // Allow images and videos
+    // Check if file is image or video
     if (file.mimetype.startsWith('image/') || file.mimetype.startsWith('video/')) {
       cb(null, true);
     } else {
@@ -44,54 +28,60 @@ const upload = multer({
   }
 });
 
-// Direct upload function for more control
-const uploadToCloudinary = async (file, folder = 'posts') => {
-  try {
-    const result = await cloudinary.uploader.upload(file.path, {
-      folder: `instagram-clone/${folder}`,
-      resource_type: 'auto',
-      transformation: file.mimetype.startsWith('image/') ? [
-        { width: 1080, height: 1080, crop: 'limit', quality: 'auto' }
-      ] : [
-        { width: 1080, height: 1080, crop: 'limit', quality: 'auto' },
-        { flags: 'attachment' }
-      ]
-    });
+// Helper function to upload buffer to Cloudinary
+const uploadToCloudinary = (buffer, options = {}) => {
+  return new Promise((resolve, reject) => {
+    const uploadStream = cloudinary.uploader.upload_stream(
+      {
+        resource_type: 'auto', // Automatically detect file type
+        folder: options.folder || 'social-media-app',
+        transformation: options.transformation || [],
+        ...options
+      },
+      (error, result) => {
+        if (error) {
+          reject(error);
+        } else {
+          resolve(result);
+        }
+      }
+    );
 
-    // For videos, also generate a thumbnail
-    if (file.mimetype.startsWith('video/')) {
-      const thumbnailResult = await cloudinary.uploader.upload(file.path, {
-        folder: `instagram-clone/${folder}/thumbnails`,
-        resource_type: 'video',
-        format: 'jpg',
-        transformation: [
-          { width: 300, height: 300, crop: 'fill' }
-        ]
-      });
-      result.thumbnail_url = thumbnailResult.secure_url;
-    }
-
-    return result;
-  } catch (error) {
-    console.error('Cloudinary upload error:', error);
-    throw new Error('File upload failed');
-  }
+    // Convert buffer to stream and pipe to Cloudinary
+    const readable = new Readable();
+    readable.push(buffer);
+    readable.push(null);
+    readable.pipe(uploadStream);
+  });
 };
 
-// Delete file from Cloudinary
-const deleteFromCloudinary = async (publicId) => {
-  try {
-    const result = await cloudinary.uploader.destroy(publicId);
-    return result;
-  } catch (error) {
-    console.error('Cloudinary delete error:', error);
-    throw new Error('File deletion failed');
-  }
+// Helper function to delete from Cloudinary
+const deleteFromCloudinary = (publicId, resourceType = 'image') => {
+  return new Promise((resolve, reject) => {
+    cloudinary.uploader.destroy(
+      publicId,
+      { resource_type: resourceType },
+      (error, result) => {
+        if (error) {
+          reject(error);
+        } else {
+          resolve(result);
+        }
+      }
+    );
+  });
+};
+
+// Extract public ID from Cloudinary URL
+const getPublicIdFromUrl = (url) => {
+  const matches = url.match(/\/upload\/(?:v\d+\/)?(.+)\.\w+$/);
+  return matches ? matches[1] : null;
 };
 
 module.exports = {
   upload,
   uploadToCloudinary,
   deleteFromCloudinary,
+  getPublicIdFromUrl,
   cloudinary
 };
