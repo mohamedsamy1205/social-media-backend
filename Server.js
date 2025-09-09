@@ -1,10 +1,17 @@
-// server.js
 require('dotenv').config();
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
 const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
+const { initSocket } = require("./src/socketio/NotifSocket");
+const http = require("http");
+const { Server } = require("socket.io");
+const dotenv = require("dotenv");
+const connectDB = require("./src/config/db");
+
+
+
 
 
 const app = express();
@@ -12,6 +19,16 @@ const app = express();
 // Security middleware
 app.use(helmet());
 app.use(cors());
+
+
+app.use(express.json());
+
+
+
+const server = http.createServer(app);
+const io = new Server(server);
+
+initSocket(server);
 
 // Rate limiting
 const limiter = rateLimit({
@@ -45,16 +62,6 @@ app.use('/api/user', userRoutes);
 app.use('/api/auth', authRoutes);
 
 
-// Database connection
-const connectDB = async () => {
-  try {
-    await  mongoose.connect(process.env.MONGO_URI)
-    console.log('MongoDB connected successfully');
-  } catch (error) {
-    console.error('Database connection error:', error);
-    process.exit(1);
-  }
-};
 
 // Start server
 const PORT = process.env.PORT || 5000;
