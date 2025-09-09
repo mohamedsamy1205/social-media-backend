@@ -33,16 +33,17 @@ const commentRoutes = require('./src/routes/commentRoutes');
 const postRoutes = require('./src/routes/posts');
 const userRoutes = require('./src/routes/userRoutes');
 const authRoutes = require('./src/routes/authRoutes');
+const likeRoute=require('./src/routes/likeRoutes')
 
 
 
-// API Routes - ONLY ADD ROUTES THAT ACTUALLY EXIST
+// API Routes 
 app.use('/api/comment', commentRoutes);
-
-
+app.use('/api/like',likeRoute)
 app.use('/api/post', postRoutes);
 app.use('/api/user', userRoutes);  
 app.use('/api/auth', authRoutes);
+
 
 // Database connection
 const connectDB = async () => {

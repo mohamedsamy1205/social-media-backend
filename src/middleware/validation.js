@@ -1,5 +1,7 @@
-const { body, validationResult } = require('express-validator');
+const { body, param, validationResult } = require('express-validator');
 
+
+// Comment validation
 const validateComment = [
   body('content')
     .trim()
@@ -20,11 +22,73 @@ const validateComment = [
       return res.status(400).json({
         success: false,
         message: 'Validation failed',
-        errors: errors.array().map(e => e.msg)
+        errors: errors.array().map(e => e.msg),
       });
     }
     next();
-  }
+  },
 ];
 
-module.exports = validateComment; // <--- export directly
+
+// Like validation
+
+const validateLike = [
+  body('targetId')
+    .notEmpty()
+    .withMessage('Target ID is required')
+    .isMongoId()
+    .withMessage('Invalid target ID format'),
+
+  body('targetType')
+    .notEmpty()
+    .withMessage('Target type is required')
+    .isIn(['post', 'comment'])
+    .withMessage('Target type must be either "post" or "comment"'),
+
+  (req, res, next) => {
+    const errors = validationResult(req);
+
+    if (!errors.isEmpty()) {
+      return res.status(400).json({
+        success: false,
+        message: 'Validation failed',
+        errors: errors.array().map(error => error.msg),
+      });
+    }
+
+    next();
+  },
+];
+
+
+// Like params validation
+const validateLikeParams = [
+  param('targetId')
+    .isMongoId()
+    .withMessage('Invalid target ID format'),
+
+  param('targetType')
+    .isIn(['post', 'comment'])
+    .withMessage('Target type must be either "post" or "comment"'),
+
+  (req, res, next) => {
+    const errors = validationResult(req);
+
+    if (!errors.isEmpty()) {
+      return res.status(400).json({
+        success: false,
+        message: 'Validation failed',
+        errors: errors.array().map(error => error.msg),
+      });
+    }
+
+    next();
+  },
+];
+
+// Export all validators
+module.exports = {
+  validateComment,
+  validateLike,
+  validateLikeParams,
+};

@@ -13,10 +13,10 @@ const {
 
 
 
-// Import middleware (you'll need to create these)
+//  middleware 
 const authMiddleware = require('../middleware/authMiddleware');
 
-const validateComment = require('../middleware/validation'); 
+const {validateComment} = require('../middleware/validation'); 
 
 
 
