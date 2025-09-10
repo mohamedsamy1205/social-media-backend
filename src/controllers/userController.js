@@ -1,7 +1,7 @@
 const User = require("../models/User");
 const bcrypt = require("bcrypt");
 const { createNotification } = require("./notificationController");
-const { sendNotification } = require("../socketio/NotifSocket");
+const { sendNotification } = require("../socketio/Socket");
 
 // 🟢 Get My Profile
 exports.getMyProfile = async (req, res) => {

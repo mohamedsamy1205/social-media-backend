@@ -2,7 +2,7 @@
 const Post = require('../models/Post');
 const Media = require('../models/Media');
 const Comment = require('../models/Comment');
-const Like = require('../models/Like');
+const Like = require('../models/like');
 const User = require('../models/User'); // Added for array-based following
 const { uploadToCloudinary } = require('../utils/fileUpload');
 

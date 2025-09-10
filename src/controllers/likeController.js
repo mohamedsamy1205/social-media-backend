@@ -1,5 +1,5 @@
 // controllers/likeController.js
-const Like = require('../models/Like');
+const Like = require('../models/like');
 const Post = require('../models/Post');
 const Comment = require('../models/Comment');
 const mongoose = require('mongoose');

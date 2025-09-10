@@ -28,4 +28,4 @@ const likeSchema = new mongoose.Schema({
 likeSchema.index({ targetId: 1, targetType: 1 }); // Get all likes for a post/comment
 likeSchema.index({ userId: 1, targetId: 1, targetType: 1 }, { unique: true }); // Prevent duplicate likes
 
-module.exports = mongoose.model('Like', likeSchema);
+module.exports = mongoose.models.Like || mongoose.model("Like", likeSchema);
