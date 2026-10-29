@@ -7,7 +7,8 @@ const { sendNotification } = require("../socketio/Socket");
 exports.getMyProfile = async (req, res) => {
   try {
     const user = await User.findById(req.user.id).select("-password");
-    res.json(user);
+    const posts = await findbyuserId(req.user.id)
+    res.json(user,posts);
   } catch (err) {
     res.status(500).json({ message: err.message });
   }

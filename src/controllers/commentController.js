@@ -8,25 +8,25 @@ const mongoose = require('mongoose');
 
 const createComment = async (req,res)=>{
 
-    try{
-        const{postId,content}=req.body
-        const userId = req.user._id
+  try{
+      const{postId,content}=req.body
+      const userId = req.user._id
 
 
-        if (!postId || !content?.trim()) {
-      return res.status(400).json({
-        success: false,
-        message: 'Post ID and content are required'
-      });
-    } 
+      if (!postId || !content?.trim()) {
+    return res.status(400).json({
+      success: false,
+      message: 'Post ID and content are required'
+    });
+  } 
 
-    const post = await Post.findById(postId);
-    if (!post) {
-      return res.status(404).json({
-        success: false,
-        message: 'Post not found'
-      });
-    }
+  const post = await Post.findById(postId);
+  if (!post) {
+    return res.status(404).json({
+      success: false,
+      message: 'Post not found'
+    });
+  }
 const comment = await Comment.create({
       postId,
       userId,

@@ -2,7 +2,7 @@
 const Post = require('../models/Post');
 const Media = require('../models/Media');
 const Comment = require('../models/Comment');
-const Like = require('../models/like');
+const Like = require('../models/Like');
 const User = require('../models/User'); // Added for array-based following
 const { uploadToCloudinary } = require('../utils/fileUpload');
 
@@ -40,7 +40,8 @@ exports.createPost = async (req, res) => {
     // Upload media files and create media records
     const mediaPromises = files.map(async (file, index) => {
       try {
-        const uploadResult = await uploadToCloudinary(file, 'posts');
+       const uploadResult = await uploadToCloudinary(file.buffer, { folder: 'posts' });
+
         
         const media = new Media({
           postId: post._id,
